@@ -1,6 +1,7 @@
 from collections import UserDict
 from datetime import datetime, timedelta
 import re
+import pickle
 
 class Field:
     def __init__(self, value):
@@ -62,6 +63,7 @@ class Record:
     def __str__(self):
         phones_str = '; '.join(p.value for p in self.phones)
         birthday_str = str(self.birthday) if self.birthday else "не вказано"
+
         return f"Contact name: {self.name.value}, phones: {phones_str}, birthday: {birthday_str}"
 
 class AddressBook(UserDict):
@@ -78,9 +80,27 @@ class AddressBook(UserDict):
     def get_upcoming_birthdays(self, days=7):
         today = datetime.today()
         upcoming_birthdays = []
+
         for record in self.data.values():
             if record.birthday:
                 next_birthday = record.birthday.value.replace(year=today.year)
                 if today <= next_birthday <= today + timedelta(days=days):
                     upcoming_birthdays.append(record)
         return upcoming_birthdays
+
+    def save_to_file(self, filename="./addressbook/addressbook.pkl"):
+            with open(filename, "wb") as f:
+                pickle.dump(self, f)
+            print(f"Файл '{filename}' збережено.")
+
+    def load_from_file(filename="./addressbook/addressbook.pkl"):
+        try:
+            with open(filename, "rb") as f:
+                print(f"Файл '{filename}' завантажено.")
+                return pickle.load(f)
+
+        except FileNotFoundError:
+            print(f"Файл '{filename}' не знайдено. Створюємо нову адресну книгу.")
+            return AddressBook()
+
+
